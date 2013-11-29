@@ -1,0 +1,94 @@
+
+Q direct_value 0
+
+Q bank_money 20000
+	direct_value 1
+
+Q cash
+	direct_value 1.1
+
+Q programming_skill 1
+	@bank_money norm(2,1) /1M lA
+
+A draw_cash
+	now 30m
+	bank_money -200
+	cash 200
+	repeatable
+
+A wait
+	now 1h
+	repeatable
+
+A train_programming_skill
+	now 1h
+	programming_skill 1
+	repeatable
+	repeatable
+
+
+
+Q social_interaction_improvement
+	direct_value 10
+
+Q general_social_skills 0
+	#direct_value ($toppost-100)*100
+	@social_interaction_improvement 1 /4h lA
+
+A one_social_interaction_improvement
+	now 6h
+	@direct_value 10 /4h lA
+	repeatable
+
+A coze_outing
+	now 2h
+	now 2h
+	now 2h
+	general_social_skills 1
+	repeatable
+
+#########################################################
+
+Q u_an 1
+	@direct_value 1000 lA
+
+Q u_an_an 1
+	@u_an 1000 lA
+
+A make_uaa
+	now 1h
+	u_an_an 1000
+	direct_value 1
+
+A make_ua
+	now 1h
+	u_an 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

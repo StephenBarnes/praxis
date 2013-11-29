@@ -1,0 +1,27 @@
+
+Q direct_value
+
+
+Q u_an 1
+	@direct_value 1 r5
+
+Q u_an_an 1
+	@u_an 1 r5
+
+A make_uaa
+	now 1h
+	u_an_an 1
+
+V make_ua_productivity norm(2,1)
+
+A make_ua
+	now 1h
+	u_an make_ua_productivity
+
+A make_uaaa
+	now 1h
+	u_an_an_an 1
+
+Q u_an_an_an 1
+	@u_an_an 1 r5
+

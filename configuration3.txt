@@ -1,0 +1,33 @@
+
+
+Q direct_value
+
+Q wood 10
+	direct_value 1
+
+Q trees 10
+	wood 3
+
+A create_button
+	quant_prereq wood > 5
+
+A push_button
+	repeatable
+	agos_prereq create_button
+	direct_value 1000
+
+A plant_yew_tree
+	trees 1
+	agos_prereq buy_tree_seeds
+
+A plant_oak_tree
+	trees 1
+	agos_prereq buy_tree_seeds
+
+A buy_tree_seeds
+	agos_prereq go_to_seed_store
+
+A go_to_seed_store
+
+A make_utility_ex_nihilo
+	direct_value 1

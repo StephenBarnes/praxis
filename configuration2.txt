@@ -1,0 +1,31 @@
+
+Q cash 0
+	direct_value $tn
+
+Q generalized_social_skills 100
+	direct_value $tn
+
+Q ptime 0
+	direct_value .1
+
+Q health 100
+	direct_value 1
+
+Q eating_sugar 0
+	# grams
+	health -1
+
+Q coze_points 0
+	direct_value 10
+
+A gargle_with_glucose_water_for_a_week
+	now -1h30m for getting the water and glucose and instructions
+	@ptime -10m /1d x7 for mixing
+	@eating_sugar lnorm(95%, 1, 15) /1d x7
+	var glucose_water_ptime_effects = lnorm(90%, .7, 1.7) , 1h
+	@ptime +$daily_ptime*($glucose_water_ptime_effects-1) /1d x7
+
+A go_do_rejection_therapy
+	now -2*(lnorm(95%,30m,2h30m)) for travel
+	now -2h for doing it
+	coze_points lnorm(95%, 5, 300)

@@ -1,0 +1,139 @@
+
+Resolution: I'm going to consolidate all my notes, and actually draw up a real plan of attack here, rather than proceeding without really knowing what I'm doing, which is what I've been doing so far.
+
+
+									OUTLINE OF CODE AND CLASSES FOR PRAXIS
+
+
+FILE: CONFIGURATION.py
+
+AgosiDefs : hash from agosi names to their definitions
+QuantDefs : hash from quant names to their definitions
+Variables : hash from variable names to their definitions
+
+class Configuration
+	# moving as much as possible OUT of Configuration, so that we don't have to make deepcopies all the time
+	ExecutableAgosi : list of names of all agosi that can be executed (we could also keep eg a hash from agos names to their definitions, but we don't want that copied every single time)
+	DepletedAgosi : list of names of all agosi that can't be executed because they've already been executed
+	PrereqqedAgosi : list of names of all agosi that can't be executed because their prereqs aren't fulfilled
+	ChangedVariables : list of variables that have different values in this Configuration than they have in global hash Variables
+
+	GetQuantityValue() : looks at dependencies of quantities, does toposort, then trickles down values all the way to DIRECT_VALUE
+
+	GetAgosValue(agosname) : sum of AgosDirectValue(agosname) and AgosIndirectValue(agosname)
+	AgosDirectValue(agosname) : gets self.ApplyAgos(agosname).GetQuantityValue()
+	ApplyAgos(agosname) : copies self, applies the agos to the copy, and returns the resulting Configuration; applying involves increasing time, executing quant-effects, ...
+	NewAgosi(OldConfig) : returns list of agosi present in this Configuration but not in OldConfig
+		this is done by going through all PrereqqedAgosi, looking at those who have QuantPrereqsSatisfied(quantvalues), and then checking whether those have their AgosPrereqs satisfied
+	AgosIndirectValue(agosname) : takes self.ApplyAgos(agosname), then looks at that.NewAgosi(self); for all the new agosi, it does that.GetAgosValue(newagos); it returns the time-req-weighted average of the max with the direct value of agosname
+
+	GetVarVOPI(varname) : returns value of perfect information on a variable, by taking weighted average of self.EvidenceValue(representative) over all representatives of the variable
+	EvidenceValue(varname, newdist) : takes self.ApplyEvidence(varname, newdist) and returns difference between that.ValueCreatedBy(self.CreatableValue["AgosiSeries"]) and that.CreatableValue()["value"], ie how much we'd lose by acting according to old info if current info is valid
+	CreatableValue(time=0) : returns (value, AgosiSeries) that APPROXIMATELY maximizes QuantityValue through its execution, subject to some TIME_HORIZON; assumes last agos's effects are linear and takes the part that won't overshoot TIME_HORIZON
+		does this by taking AgosValue of each agos, then trying each of the top N (N=3? or N=1) and recursing on the resulting configuration (with lowered TIME_HORIZON so recursion is finite)
+		would have made this: try all combinations of agosi; this is O( agos_number P (TIME_HORIZON/agos_lengths) ), or concretely about 500P(50h/3h)=too_damn_high
+	ValueCreatedBy(AgosiSeries) : returns QuantityValue after applying all the agosi
+	ApplyEvidence(varname, newdist) : copies self, lets that.ChangedVariables[varname]=newdist, and returns resulting Configuration
+	
+	ValueOfNewAgos(agosdef) : returns difference between self.AddAgos(agosdef).CreatableValue() and self.CreatableValue()
+	AddAgos(agosdef) : copies self, adds in agosdef as a new agos, and returns the resulting Configuration
+
+take 2 on class Configuration
+	ExecutableAgosi : list of names of all agosi that can be executed (we could also keep eg a hash from agos names to their definitions, but we don't want that copied every single time)
+	DepletedAgosi : list of names of all agosi that can't be executed because they've already been executed
+	PrereqqedAgosi : list of names of all agosi that can't be executed because their prereqs aren't fulfilled
+	ChangedVariables : list of variables that have different values in this Configuration than they have in global hash Variables
+
+	GetQuantityValue() : looks at dependencies of quantities, does toposort, then trickles down values all the way to DIRECT_VALUE
+
+	GetAgosValue(agosname) : max of AgosDirectValue(agosname) and AgosIndirectValue(agosname)
+	AgosDirectValue(agosname) : gets self.ApplyAgos(agosname).GetQuantityValue()
+	ApplyAgos(agosname) : copies self, applies the agos to the copy, and returns the resulting Configuration; applying involves increasing time, executing quant-effects, removing the agos if it isn't repeatable...
+	NewAgosi(OldConfig) : returns list of agosi present in this Configuration but not in OldConfig
+		this is done by going through all PrereqqedAgosi, looking at those who have QuantPrereqsSatisfied(quantvalues), and then checking whether those have their AgosPrereqs satisfied
+	AgosIndirectValue(agosname) : takes self.ApplyAgos(agosname), then looks at that.NewAgosi(self); for each new agos, it does ContinueAgosChain, then returns max of those
+	ContinueAgosChain(list_of_new_agosi, time_so_far, starting_quantity_value) : returns max of [ starting_quantity_value / time_so_far] and [ max of ContinueAgosChain under each possible next action ] 
+		note that when we recurse, we send as new_agosi the sum of all the new_agosi that haven't been tried so far, and the new agosi opened up
+			this allows us to deal properly with eg drawing cash opening up 10 different possible amazon purchases - we try every combination, but only once each
+
+	GetVarVOPI(varname) : returns value of perfect information on a variable, by taking weighted average of self.EvidenceValue(representative) over all representatives of the variable
+	EvidenceValue(varname, newdist) : takes self.ApplyEvidence(varname, newdist) and returns difference between that.ValueCreatedBy(self.CreatableValue["AgosiSeries"]) and that.CreatableValue()["value"], ie how much we'd lose by acting according to old info if current info is valid
+	CreatableValue(time=0) : returns (value, AgosiSeries) that APPROXIMATELY maximizes QuantityValue through its execution, subject to some TIME_HORIZON; assumes last agos's effects are linear and takes the part that won't overshoot TIME_HORIZON
+		works by calculating agos value for every agos, then taking all actions from the top down; as soon as we reach sth repeatable, just continue taking that thing
+		we could also have sth like "actual creatot value", which can be like 30% of creatable value; determine the exact number by observing actual statistics
+	/ ValueCreatedBy(AgosiSeries) : returns QuantityValue after applying all the agosi
+	/ ApplyEvidence(varname, newdist) : copies self, lets that.ChangedVariables[varname]=newdist, and returns resulting Configuration
+	
+	ValueOfNewAgos(agosdef) : returns difference between self.AddAgos(agosdef).CreatableValue() and self.CreatableValue()
+	AddAgos(agosdef) : copies self, adds in agosdef as a new agos, and returns the resulting Configuration
+
+
+
+/ class AgosDef
+	name : name of the agos
+	description : optional agos description
+	QuantEffects : list of QuantEffect objects that are enacted by the agos
+	QuantPrereqs : list of QuantPrereq objects applicable to the agos
+	QuantAnnuities : list of QuantAnnuity objects that are enacted by the agos
+	repeatable : whether it can be repeated indefinitely
+	AgosPrereqs : list of names of agosi which are prerequisite for this agos
+	QuantPrereqsSatisfied(quantvalues) : returns whether quant prereqs are satisfied
+
+/ class QuantAnnuity
+
+/ class QuantEffect
+	quantname : name of the affected quantity
+	effect : instance of ProbabilityDist
+
+/ class QuantPrereq
+	terms : string containing the terms of the prereq
+	variables : list of variable names appearing in "terms" string; generated upon creation from the "terms" string
+	Satisfied(quantvalues) : substitutes quantity values into "terms" string, and returns that
+
+class ProbabilityDist
+
+/ class VariableDef
+
+/ class QuantValueSet
+
+
+
+
+
+
+
+
+
+
+
+
+
+How do we deal with variables in expressions, and with variables' default values, and with new values for them (representatives)?
+
+- option 1: store VariableInstances inside distribution trees; store VariableDefinitions elsewhere; whenever you ask a distribution for anything (mean, var, etc.), pass it the dict of VariableDefinitions and ChangedVariables
+- option 2: same, but pass the VariableInstances the VariableDefinitions dict on creation. This will work because we can still modify
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

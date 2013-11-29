@@ -1,0 +1,15 @@
+
+Q direct_value
+
+V makeable_value norm(5,5)
+
+A make_value
+	now 1h
+	repeatable
+	direct_value makeable_value
+
+A make_value_safe
+	now 1h
+	repeatable
+	direct_value 6
+
