@@ -292,6 +292,8 @@ def RemoveCountPrefixes(line, char):
 	R = 0
 	while line[R] == char:
 		R += 1
+		if R >= len(line):
+			return ("", 0)
 	return (line[R:], R) if R else (line, 0)
 
 def ParseTabLevels(S, isfile=True):
@@ -566,7 +568,7 @@ class QuantityAnnuity(Statement):
 		# we approximate the value each rep as what the value would be right now (in terms only of quantity value, not eg the satisfaction of prereqs)
 		PostEffect = deepcopy(QuantValues)
 		if self.parentquant is None:
-			PostEffect.ApplyQuantityStraightEffect(self.effect)
+			PostEffect.ApplyQuantityStraightEffect(self.effect, ChangedVariables)
 		else:
 			#PostEffect.ApplyQuantityTricklingEffect(self.effect, self.parentquant.quantname)
 			#print "names:", self.quantname, self.parentquant.quantname
@@ -628,7 +630,7 @@ class QuantityValueSet(Statement):
 	def TrickleQuantityWithAnnuityRemoved(self, annuitiestoremove, trickledwithoutannuity, name, ChangedVariables):
 		for effect in QuantityDefinitions[name].QuantityEffects:
 			quantnumtransform = effect.effect
-			newamt = quantnumtransform.mean(VariableDefinitions, self, bottomcurr=DegenerateDist(trickledwithoutannuity[effect.quantname]), toppost=DegenerateDist(trickledwithoutannuity[name]))
+			newamt = quantnumtransform.mean(VariableDefinitions, self, ChangedVariables, bottomcurr=DegenerateDist(trickledwithoutannuity[effect.quantname]), toppost=DegenerateDist(trickledwithoutannuity[name]))
 			trickledwithoutannuity[effect.quantname] = newamt
 		for annuity in QuantityDefinitions[name].QuantityAnnuityEffects:
 			if annuity in annuitiestoremove:
@@ -695,10 +697,13 @@ class QuantityValueSet(Statement):
 def ShowSummary(Config):
 	print; print "############################CONFIGURATION SUMMARY##########################"
 	print; print "Quantity Value:", Config.GetQuantityValue()
+	AgosData = []
 	for agosname in Config.ExecutableAgosi:
 		V = Config.AgosIndirectValue(agosname)
-		print; print; print "    *******" + agosname + "*******"
-		print
+		AgosData.append((V[0], agosname, V))
+	AgosData.sort(reverse=True)
+	for code, agosname, V in AgosData:
+		print; print "    *******" + agosname + "*******"
 		print str(V[3])
 		#ACCURACY = 0
 		#print str(round(V[1], ACCURACY)) + "u\t/\t" + str(round(V[2]/3600.,ACCURACY)) + "h\t=\t" + str(round(V[0]*3600., ACCURACY)) + "u/h"

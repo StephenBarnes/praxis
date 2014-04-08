@@ -114,8 +114,9 @@ class DistProd(ProbabilityDist):
 
 class DegenerateDist(ProbabilityDist):
 	def __init__(self, x=None):
-		self.val = x
-		assert (x is None) or (type(x).__name__ == "float")
+		assert (x is None) or (type(x).__name__ in ("float", "int")), "ERROR: DegenerateDist value's type is " + type(x).__name__
+		if x is not None:
+			self.val = float(x)
 	def mean(self, VariableDefs, QuantValues, ChangedVariables={}, **kwargs):
 		return self.val
 	def sqmean(self, VariableDefs, QuantValues, ChangedVariables={}):

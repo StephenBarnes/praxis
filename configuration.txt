@@ -1,15 +1,150 @@
 
 Q direct_value
 
-V makeable_value norm(5,5)
+Q rc_dense_math_pages
 
-A make_value
-	now 1h
-	repeatable
-	direct_value makeable_value
+#A practice_correct_arm_crossing
+#	now 10m
+#	@remember_daily 1 /1D l1M
+#	@private_time 30s /1D l1M
+#	TODO benefits
 
-A make_value_safe
-	now 1h
-	repeatable
-	direct_value 6
+#A actually_do_hourly_prock
+
+#A try_to_get_opioid_antagonists
+
+
+
+
+Q productivity_increase
+	# 0.5 of this means a 50% boost in productivity, etc.
+	@direct_value 100 /1D l1Y
+
+Q self_tracking_data
+	# 1 of this means about the same value of data as 1 day of traxis
+	direct_value 5
+
+Q distributed_time
+	# 1 of this means 1 second of time distributed around the day, in chunks of 5 to 15 seconds
+	direct_value -(0.003)
+
+Q social_impression
+	direct_value 1
+	#TODO fill out more
+
+A improve_praxis
+	now 2h for understanding how it works again
+	now 1h for coming up with and prioritizing improvements
+	now 5h for implementing improvements
+	# Payoffs:
+	productivity_increase 0.1
+
+A get_traxis_usable
+	now 1h for looking over server code, how to modify it
+	now 3h for figuring out what improvements to make, and broadly how to make them
+	now 5h for implementation
+	@distributed_time 30m /1D l1Y
+	#for recording data
+	# Payoffs:
+	productivity_increase 0.15
+	@self_tracking_data 1 /1D l1Y
+	
+A write_blog_posts
+	now 1h for making a list of posts to write and deciding on an order
+	now (5h)*10 for writing them
+	now (4h)*10 for editing them
+	# Payoffs:
+	social_impression 100.0*10
+	direct_value 10*0.1*100
+		#for misc knock-on benefits, eg other people adding good ideas
+
+A brainstorm_how_to_improve_anki_use
+	now 10h
+	# Payoffs:
+	@direct_value 5 /1D l10Y
+
+A anki_mechanics
+	# ie: learn how anki works, how the scheduling algorithms work, etc.; look through the code, read the docs
+	now 3h for reading the docs
+	now 5h for looking through the code
+	# Payoffs:
+	#rev_anki_card_forever -(0.01*30000)
+	@direct_value 5 /1D l2Y
+
+Q rev_anki_card_forever
+	direct_value -(3)
+
+A rc_supermemo_pages
+	now (3h*5)
+	rev_anki_card_forever (50*5)
+	# Payoffs:
+	@direct_value (1*5) /1D l2Y
+		# for general benefits
+	@direct_value (5*0.05*5) /1D l2Y
+		# for oppshot benefits
+
+A think_about_and_research_my_future
+	now 1h for meta-thinking
+	now 3h for thinking
+	now 1h for separating past and future into "periods"
+	# Payoffs:
+	productivity_increase 0.05
+
+#A remove_music
+#	now 45m
+#	# Payoffs:
+#	productivity_increase 0.1
+
+A look_through_anki_plugins
+	now (20m*3)+(2m*30)
+	# Payoffs:
+	@direct_value 5 /1D l1Y
+
+A read_DontShootTheDog
+	now 10m*300 for rcing each page
+	rev_anki_card_forever 3*300
+	# Payoffs:
+	@direct_value 10 /1D l2Y
+	direct_value 0.1*300
+
+A check_money_status
+	now 30m
+	direct_value 0.5*200
+
+A make_backups
+	now 20m
+	# Payoffs:
+	direct_value 50*(0.5/365)
+		# because in the case where I lose my data and rely on this backup (chance is 0.5/365),
+		# it has $50 value (since I've got pretty recent backups already)
+
+A get_cardistry_to_practice
+	now 30m
+	# Payoffs:
+	@direct_value 3.5 /1D l6M
+
+Q money
+	direct_value 1
+
+Q career_capital
+	# 0.01 of this means a 1% improvement in employer-judged "career capability"
+	@money (8)*(20) /1D l10Y
+		# because a doubling of career capital causes, say, $20/hour greater wage
+
+A rc_programming_interview_book
+	now 3m*300
+	rev_anki_card_forever 3*300
+	# Payoffs:
+	career_capital 0.05
+
+
+
+
+
+# TO ADD:
+# A set_up_keylogging
+
+
+
+
 
